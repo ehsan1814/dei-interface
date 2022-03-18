@@ -3,7 +3,7 @@ import styled from 'styled-components'
 
 import Hero, { HeroSubtext } from 'components/Hero'
 import Disclaimer from 'components/Disclaimer'
-import { Deposits, Claimable, Balance, Convert as ConvertStake } from 'components/App/Convert'
+import { Deposits, Claimable, Balance, Convert as ConvertStake, StakedManager } from 'components/App/Convert'
 
 const Container = styled.div`
   display: flex;
@@ -44,6 +44,7 @@ export default function Convert() {
           <Balance />
         </InfoRow>
         <ConvertStake />
+        <StakedManager />
       </Wrapper>
       <Disclaimer />
     </Container>

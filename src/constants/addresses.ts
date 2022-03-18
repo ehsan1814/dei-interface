@@ -27,3 +27,8 @@ export const Locker: AddressMap = {
 export const SolidexLpDepositor: AddressMap = {
   [SupportedChainId.FANTOM]: '0x26E1A0d851CF28E697870e1b7F053B605C8b060F',
 }
+
+// NEEDS CHANGING
+export const FluidAddress: AddressMap = {
+  [SupportedChainId.FANTOM]: '0xDE12c7959E1a72bbe8a5f7A1dc8f8EeF9Ab011B3',
+}

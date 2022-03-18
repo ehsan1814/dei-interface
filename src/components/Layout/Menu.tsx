@@ -13,6 +13,7 @@ import {
   CreditCard as CreditCardIcon,
   Twitter as TwitterIcon,
   Github as GithubIcon,
+  Trade as TradeIcon,
 } from 'components/Icons'
 import { Card } from 'components/Card'
 import { NavButton } from 'components/Button'
@@ -74,7 +75,7 @@ export default function Menu() {
       </NavButton>
       <div>
         <InlineModal isOpen={isOpen}>
-          {/* <Link href="/convert" passHref>
+          <Link href="/convert" passHref>
             <Row onClick={() => toggle()} active={router.route === '/convert'}>
               <div>Convert</div>
               <IconWrapper>
@@ -82,7 +83,7 @@ export default function Menu() {
               </IconWrapper>
             </Row>
           </Link>
-          <Link href="/vote" passHref>
+          {/* <Link href="/vote" passHref>
             <Row active={router.route === '/vote'}>
               <div>Vote</div>
               <IconWrapper>
