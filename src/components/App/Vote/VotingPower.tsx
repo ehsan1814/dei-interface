@@ -3,6 +3,10 @@ import styled from 'styled-components'
 
 import { VoteType } from 'hooks/useVoteCallback'
 import { DotFlashing } from 'components/Icons'
+import { veNFTType } from 'pages/vote'
+import { useWalletModalToggle } from 'state/application/hooks'
+import { preVoteType } from 'hooks/usePreVotedPairs'
+import useWeb3React from 'hooks/useWeb3'
 
 const enum VoteState {
   VALID = 'valid',
@@ -43,7 +47,30 @@ const ItemsWrapper = styled.div`
   padding: 12px 24px;
   display: flex;
   justify-content: center;
-  flex-direction: row;
+  margin: 0px 10px;
+  height: 100%;
+
+  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+    padding: 0px;
+    margin-bottom: 10px;
+  `}
+`
+const PowerItemsWrapper = styled.div`
+  padding: 12px 24px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  margin: 0px 10px;
+  height: 100%;
+
+  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+    padding: 0px;
+    margin-bottom: 10px;
+  `}
+`
+const PowerWrapper = styled.div`
+  display: flex;
+  justify-content: left;
   margin: 0px 10px;
   height: 100%;
 
@@ -58,6 +85,8 @@ const CastVote = styled.button<{ voteState: VoteState }>`
   height: 40px;
   border-radius: 12px;
   text-align: center;
+  margin-top: auto;
+  margin-bottom: auto;
   border: 1px solid rgba(126, 153, 176, 0.2);
   background-color: #789495;
   display: flex;
@@ -94,22 +123,39 @@ export default function VotingPower({
   onCastVote,
   loading,
   setLoading,
+  preVotedPairs,
+  selectedVeNFTType,
 }: {
   votes: VoteType[]
   onCastVote: () => void
   loading: boolean
   setLoading: (loading: boolean) => void
+  preVotedPairs: preVoteType[] | null
+  selectedVeNFTType: veNFTType | null
 }) {
-  const [votingPower, setVotingPower] = useState(10)
+  const { chainId, account } = useWeb3React()
+  const toggleWalletModal = useWalletModalToggle()
+  const [votingPower, setVotingPower] = useState(0)
+
+  // this array used for save pre voted pairs amount
+  const [preVotingPower, setPreVotingPower] = useState<preVoteType[] | null>([])
+  // this is used to show whether a user can vote or not
   const voteState = useMemo(() => (votingPower > 100 ? VoteState.NOT_VALID : VoteState.VALID), [votingPower])
 
   useEffect(() => {
     let power = 0
+    const preVotedPower: preVoteType[] | null = []
     votes.forEach((vote) => {
+      if (preVotedPairs?.length) {
+        const index = preVotedPairs.findIndex((preVote) => preVote.address.toLowerCase() === vote.address.toLowerCase())
+        if (index > -1)
+          preVotedPower.push({ address: vote.address, amount: vote.amount, symbol: preVotedPairs[index].symbol })
+      }
       power += Math.abs(vote.amount)
     })
+    setPreVotingPower(preVotedPower)
     setVotingPower(power)
-  }, [votes])
+  }, [votes, preVotedPairs])
 
   const castVoteHandler = () => {
     if (votingPower > 100) return
@@ -120,14 +166,42 @@ export default function VotingPower({
   return (
     <Container>
       <Wrapper>
-        <ItemsWrapper>
-          <p>Voting Power Used:</p>
-          <VotingPowerPercent voteState={voteState}>{votingPower}%</VotingPowerPercent>
-        </ItemsWrapper>
-        <CastVote voteState={voteState} onClick={castVoteHandler}>
-          <CastVoteText voteState={voteState}>Cast Votes</CastVoteText>
-          {loading && <DotFlashing />}
-        </CastVote>
+        {!chainId || !account ? (
+          <CastVote voteState={voteState} onClick={toggleWalletModal}>
+            <CastVoteText voteState={voteState}>Connet Wallet</CastVoteText>
+          </CastVote>
+        ) : (
+          <>
+            {selectedVeNFTType != veNFTType.USER_WALLET_NFT ? (
+              <PowerItemsWrapper>
+                <PowerWrapper>
+                  <p>Voting Power Used:</p>
+                  <VotingPowerPercent voteState={voteState}>{votingPower}%</VotingPowerPercent>
+                </PowerWrapper>
+                <div>
+                  {preVotingPower?.map((preVote, index) => (
+                    <PowerWrapper key={index}>
+                      {` ${preVote.symbol}:`}{' '}
+                      <VotingPowerPercent voteState={voteState}>{`${preVote.amount}%`}</VotingPowerPercent>
+                    </PowerWrapper>
+                  ))}
+                </div>
+              </PowerItemsWrapper>
+            ) : (
+              <ItemsWrapper>
+                <p>Voting Power Used:</p>
+                <VotingPowerPercent voteState={voteState}>{votingPower}%</VotingPowerPercent>
+              </ItemsWrapper>
+            )}
+
+            <CastVote voteState={voteState} onClick={castVoteHandler}>
+              <CastVoteText voteState={voteState}>
+                {selectedVeNFTType != veNFTType.USER_WALLET_NFT ? 'Lock & Vote' : 'Cast Votes'}
+              </CastVoteText>
+              {loading && <DotFlashing />}
+            </CastVote>
+          </>
+        )}
       </Wrapper>
     </Container>
   )

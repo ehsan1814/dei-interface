@@ -17,6 +17,8 @@ import { formatAmount } from 'utils/numbers'
 import useCurrencyLogo from 'hooks/useCurrencyLogo'
 import { VoteType } from 'hooks/useVoteCallback'
 import { useSolidlyGaugeData, useSolidlyGaugeReserves, useSolidlyPairData } from 'hooks/useSolidlyData'
+import { veNFTType } from 'pages/vote'
+import { preVoteType } from 'hooks/usePreVotedPairs'
 
 const Wrapper = styled.div`
   display: flex;
@@ -80,14 +82,14 @@ const Cell = styled.td`
 
   // Total Pool Amount
   ${({ theme }) => theme.mediaWidth.upToLarge`
-    :nth-child(5) {
+    :nth-child(4) {
       display: none;
     }
   `}
 
   // Total Pool Staked
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    :nth-child(6) {
+    :nth-child(5) {
       display: none;
     }
   `}
@@ -103,18 +105,17 @@ const Cell = styled.td`
     :nth-child(4) {
       display: none;
     }
-  `}
-
-  ${({ theme }) => theme.mediaWidth.upToExtraSmall`
+    // Your Slider 
     :nth-child(6) {
-      display: none;
+      width: 150px;
     }
   `}
+
 
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
     
     // Your Slider 
-    :nth-child(7) {
+    :nth-child(6) {
       width: 150px;
     }
   `}
@@ -175,11 +176,13 @@ export default function Table({
   votes,
   preVotedPairs,
   setVotes,
+  selectedVeNFTType,
 }: {
   options: SolidlyPair[]
   votes: VoteType[]
-  preVotedPairs: VoteType[] | null
+  preVotedPairs: preVoteType[] | null
   setVotes: (votes: VoteType[]) => void
+  selectedVeNFTType: veNFTType | null
 }) {
   const [offset, setOffset] = useState(0)
 
@@ -196,7 +199,7 @@ export default function Table({
   }
 
   const onSliderChange = (values: number, pair: SolidlyPair) => {
-    const currentVoteIndex = votes.findIndex((v) => v.address === pair.id)
+    const currentVoteIndex = votes.findIndex((v) => v.address.toLowerCase() === pair.id.toLowerCase())
 
     if (currentVoteIndex > -1) {
       votes[currentVoteIndex].amount = values
@@ -209,15 +212,15 @@ export default function Table({
   }
 
   const pairPercent = (pair: SolidlyPair) => {
-    const voteIndex = votes.findIndex((v) => v.address === pair.id)
+    const voteIndex = votes.findIndex((v) => v.address.toLowerCase() === pair.id.toLowerCase())
     if (voteIndex > -1) return votes[voteIndex].amount
     else return 0
   }
 
   const findAmount = (pair: SolidlyPair) => {
-    if (preVotedPairs === null) return -100
+    if (preVotedPairs === null || !selectedVeNFTType) return -100
 
-    const ourPairIndex = preVotedPairs.findIndex((v) => v.address === pair.id)
+    const ourPairIndex = preVotedPairs.findIndex((v) => v.address.toLowerCase() === pair.id.toLowerCase())
     if (ourPairIndex > -1) {
       return preVotedPairs[ourPairIndex].amount
     }
@@ -234,7 +237,6 @@ export default function Table({
             <Cell>Total Liquidity</Cell>
             <Cell>Total Votes</Cell>
             <Cell>Bribes</Cell>
-            <Cell>My Votes</Cell>
             <Cell>My Vote %</Cell>
           </tr>
         </Head>
@@ -398,22 +400,6 @@ function TableRow({
           <div>{pReserve1.toFixed(2)}</div>
           <div>{token1Symbol}</div>
         </AmountRow>
-      </Cell>
-      <Cell>
-        {gaugeAddress && gaugeAddress !== ZERO_ADDRESS ? (
-          <>
-            <AmountRow>
-              <div>{gaugeReserve0.toFixed(2)}</div>
-              <div>{token0Symbol}</div>
-            </AmountRow>
-            <AmountRow>
-              <div>{gaugeReserve1.toFixed(2)}</div>
-              <div>{token1Symbol}</div>
-            </AmountRow>
-          </>
-        ) : (
-          <div>Gauge not available</div>
-        )}
       </Cell>
       <Cell>
         <Slider percent={percent} onSliderChange={onSliderChange} min={minSliderAmount} />

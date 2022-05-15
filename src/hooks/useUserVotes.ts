@@ -32,16 +32,17 @@ export function useUserVotes(tokenID: BigNumber | null): VoteType[] {
 
       const number = result[0]
       if (number.eq(0)) continue
+
       sum = sum.plus(number.abs().toString())
       filteredVotes.push({ address: solidlyPairs[index].id, amount: number })
     }
     totalVoteWeight = sum
 
     for (let index = 0; index < filteredVotes.length; index++) {
-      const amount = Math.round(
+      const amount = new BigNumber(
         (Number(filteredVotes[index].amount.toString()) / Number(totalVoteWeight.toString())) * 100
-      )
-      filteredVotes[index].amount = amount
+      ).toFixed(0, BigNumber.ROUND_DOWN)
+      filteredVotes[index].amount = Number(amount)
     }
 
     return filteredVotes

@@ -3,9 +3,10 @@ import { TransactionResponse } from '@ethersproject/abstract-provider'
 import BigNumber from 'bignumber.js'
 
 import { useTransactionAdder } from 'state/transactions/hooks'
+import { veNFTType } from 'pages/vote'
 
 import useWeb3React from './useWeb3'
-import { useBaseV1VoterContract } from './useContract'
+import { useBaseV1VoterContract, useVaultContract } from './useContract'
 import { calculateGasMargin } from 'utils/web3'
 
 export type VoteType = { address: string; amount: number }
@@ -17,23 +18,33 @@ export enum VoteCallBackState {
 
 export default function useVoteCallback(
   votes: VoteType[],
-  tokenID: BigNumber | null
+  tokenID: BigNumber | null,
+  NFTType: veNFTType | null
 ): { state: VoteCallBackState; callback: null | (() => Promise<string>); error: string | null } {
   const { chainId, account, library } = useWeb3React()
   const addTransaction = useTransactionAdder()
   const baseVoter = useBaseV1VoterContract()
+  const vaultContract = useVaultContract()
 
   const constructCall = useCallback(() => {
     try {
       const tokens = votes.map((vote) => vote.address)
       const amounts = votes.map((vote) => new BigNumber(vote.amount * 10 ** 5).toString())
 
-      const args = [tokenID?.toString(), tokens, amounts]
-      const methodName = 'vote'
+      const args = NFTType !== veNFTType.USER_WALLET_NFT ? [tokens, amounts] : [tokenID?.toString(), tokens, amounts]
+      const methodName = NFTType !== veNFTType.USER_WALLET_NFT ? 'lock' : 'vote'
 
-      if (!account || !chainId || !library || !baseVoter) {
+      console.log({ args, methodName })
+
+      if (!account || !chainId || !library || !baseVoter || !vaultContract || !NFTType) {
         throw new Error('Missing dependencies.')
       }
+      if (NFTType)
+        return {
+          address: vaultContract.address,
+          calldata: vaultContract.interface.encodeFunctionData(methodName, args) ?? '',
+          value: 0,
+        }
       return {
         address: baseVoter.address,
         calldata: baseVoter.interface.encodeFunctionData(methodName, args) ?? '',
@@ -42,10 +53,10 @@ export default function useVoteCallback(
     } catch (error) {
       return { error }
     }
-  }, [votes, tokenID, baseVoter, account, chainId, library])
+  }, [votes, tokenID, NFTType, vaultContract, baseVoter, account, chainId, library])
 
   return useMemo(() => {
-    if (!baseVoter || !tokenID || !votes.length || !account || !chainId || !library) {
+    if (!vaultContract || !baseVoter || !tokenID || !votes.length || !account || !chainId || !library) {
       return {
         state: VoteCallBackState.INVALID,
         callback: null,
@@ -125,5 +136,5 @@ export default function useVoteCallback(
           })
       },
     }
-  }, [votes, baseVoter, tokenID, account, chainId, library])
+  }, [votes, baseVoter, vaultContract, NFTType, tokenID, account, chainId, library])
 }

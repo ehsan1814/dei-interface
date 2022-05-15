@@ -33,6 +33,9 @@ export const BaseV1Voter: AddressMap = {
 export const BaseV1Minter: AddressMap = {
   [SupportedChainId.FANTOM]: '0xC4209c19b183e72A037b2D1Fb11fbe522054A90D',
 }
+export const PlatformVoter: AddressMap = {
+  [SupportedChainId.FANTOM]: '0x27d45165B3182DAb3E853e07beC417498775dc27',
+}
 
 export const HolderManager: AddressMap = {
   [SupportedChainId.FANTOM]: '0xd7Ea68F1FcF197897906990C0CadA53cf016af99',

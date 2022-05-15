@@ -17,6 +17,7 @@ import OXDAO_HOLDER_FACTORY_ABI from 'constants/abi/OXDAO_HOLDER_FACTORY.json'
 import VEDEUS_ABI from 'constants/abi/VEDEUS.json'
 import VENFT_ABI from 'constants/abi/veNFT.json'
 import VAULT_ABI from 'constants/abi/Vault.json'
+import PLATFORM_VOTER_ABI from 'constants/abi/PLATFORM_VOTER_ABI.json'
 import REIMBURSE_ABI from 'constants/abi/REIMBURSE.json'
 import BASE_V1_FACTORY_ABI from 'constants/abi/BASE_V1_FACTORY.json'
 import BASE_V1_PAIR_ABI from 'constants/abi/BASE_V1_PAIR.json'
@@ -40,6 +41,7 @@ import {
   BaseV1Minter,
   OxDaoHolderFactory,
   GeneralLenderOracle,
+  PlatformVoter,
 } from 'constants/addresses'
 import { HolderABI, LenderABI } from 'constants/abi'
 import { BorrowPool } from 'state/borrow/reducer'
@@ -130,6 +132,11 @@ export function useVaultContract() {
   const { chainId } = useWeb3React()
   const address = useMemo(() => (chainId ? Vault[chainId] : undefined), [chainId])
   return useContract(address, VAULT_ABI)
+}
+export function usePlatformVoterContract() {
+  const { chainId } = useWeb3React()
+  const address = useMemo(() => (chainId ? PlatformVoter[chainId] : undefined), [chainId])
+  return useContract(address, PLATFORM_VOTER_ABI)
 }
 
 export function useOracleContract(pool: BorrowPool) {

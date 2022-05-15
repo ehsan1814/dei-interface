@@ -46,8 +46,10 @@ export default function Slider({
   }
 
   useEffect(() => {
-    setValue(percent)
-  }, [percent])
+    if (min !== -100 && percent === 0) {
+      setValue(min)
+    } else setValue(percent)
+  }, [percent, min])
 
   return (
     <>

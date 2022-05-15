@@ -19,7 +19,7 @@ export function useVotes(options: SolidlyPair[], tokenID: BigNumber | null): Vot
   let totalVoteWeight = BigNumber.from(0)
 
   const votes = useMemo(() => {
-    let filteredVotes = []
+    const filteredVotes = []
     let sum = BigNumber.from(0)
 
     for (let index = 0; index < userVotes.length; index++) {
