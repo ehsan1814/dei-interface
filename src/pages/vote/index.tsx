@@ -56,9 +56,9 @@ const UpperRow = styled(RowBetween)`
   }
 `
 export enum veNFTType {
-  USER_WALLET_NFT = 'USER_WALLET_NFT',
-  PENDING = 'PENDING',
-  LOCKED = 'LOCKED',
+  USER_WALLET_NFT = 'Wallet',
+  PENDING = 'Pending',
+  LOCKED = 'Locked',
 }
 
 export default function Vote() {
@@ -105,6 +105,31 @@ export default function Vote() {
     }
     setLoading(false)
   }, [callback])
+
+  const NFTList = useMemo(() => {
+    // [{tokenId, nft type}]
+    if (!veNFTTokenIds.length) return []
+
+    const list = []
+    const tokenIDs = veNFTTokenIds.map((tokenId) => {
+      return { tokenId: tokenId.toString(), type: veNFTType.USER_WALLET_NFT }
+    })
+    list.push(...tokenIDs)
+    if (useLockPendingTokenId && useLockPendingTokenId.toNumber() != 0)
+      list.push({ tokenId: useLockPendingTokenId.toString(), type: veNFTType.PENDING })
+    if (userTokenId && userTokenId.toNumber() != 0)
+      list.push({ tokenId: userTokenId.toString(), type: veNFTType.LOCKED })
+
+    return list
+  }, [useLockPendingTokenId, userTokenId, JSON.stringify(veNFTTokenIds)])
+
+  const NFTListMap = useMemo(() => {
+    const m: { [tokenId: string]: veNFTType } = {}
+    for (let index = 0; index < NFTList.length; index++) {
+      m[NFTList[index].tokenId] = NFTList[index].type
+    }
+    return m
+  }, [NFTList])
 
   const dropdownOnSelect = useCallback(
     (val: string) => {
@@ -157,22 +182,13 @@ export default function Vote() {
 
   // TODO: fix eslint warning. we should change JSON.stringify for preventing side effect
   const dropdownOptions = useMemo(() => {
-    const veNFTLength = veNFTTokenIds.length
-    if (!veNFTLength) return []
+    console.log(NFTListMap)
 
-    const tokenIDs = veNFTTokenIds.map((token, index) => {
-      return { value: index.toString(), label: `NFT #${token.toString()}` }
-    })
-
-    const lockedOrPendingNFTs = []
-    if (useLockPendingTokenId.toNumber() != 0)
-      lockedOrPendingNFTs.push({ value: veNFTLength.toString(), label: `Pending #${useLockPendingTokenId.toString()}` })
-    if (userTokenId.toNumber() != 0)
-      lockedOrPendingNFTs.push({ value: (veNFTLength + 1).toString(), label: `Locked #${userTokenId.toString()}` })
-
-    return [...tokenIDs, ...lockedOrPendingNFTs]
-  }, [JSON.stringify(veNFTTokenIds)]) // eslint-disable-line
-
+    return Object.keys(NFTListMap).map((tokenId) => ({
+      value: tokenId,
+      label: `${NFTListMap[tokenId] != veNFTType.USER_WALLET_NFT ? NFTListMap[tokenId] : ''} #${tokenId}`,
+    }))
+  }, [NFTListMap])
   return (
     <Container>
       <Hero>
