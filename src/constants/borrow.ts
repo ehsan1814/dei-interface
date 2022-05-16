@@ -41,7 +41,7 @@ export const BorrowPools: UnserializedBorrowPool[] = [
     mintHelper: MintHelper.MAIN,
     type: CollateralType.SOLIDEX,
     composition: 'DEI/DEUS',
-    oracle: '0x9f3C610a731809b6F7630B187777c66194EDf27b',
+    oracle: '0x1f45ADBFAF8d1Fb15f0179e9F2C9ec0cCDb481c0',
     generalLender: '0x118FF56bb12E5E0EfC14454B8D7Fa6009487D64E',
     lpPool: '0xF42dBcf004a93ae6D5922282B304E2aEFDd50058',
     liquidationFee: 5, // 5%
@@ -59,7 +59,7 @@ export const BorrowPools: UnserializedBorrowPool[] = [
     token1: new Token(SupportedChainId.FANTOM, '0x04068da6c83afcfa0e13ba15a6696662335d5b75', 6, 'USDC', 'USDC'),
     version: LenderVersion.V2,
     composition: 'USDC/DEI',
-    oracle: '0x7D907cF11a3F23d42c5C58426C3b8021F654964C',
+    oracle: '0xeC0966eC5f6EA8485cf695316D8df209D59A82f2',
     generalLender: '0x8D643d954798392403eeA19dB8108f595bB8B730',
     lpPool: '0x5821573d8F04947952e76d94f3ABC6d7b43bF8d0',
     mintHelper: MintHelper.MAIN,
