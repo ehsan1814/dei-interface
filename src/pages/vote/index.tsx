@@ -87,6 +87,7 @@ export default function Vote() {
 
   // console.log({ veNFTTokenIds })
   // console.log({ useLockPendingTokenId, userTokenId })
+  console.log({ dropDownDefaultValue })
 
   const onCastVote = useCallback(async () => {
     if (!callback) return
@@ -133,30 +134,38 @@ export default function Vote() {
 
   const dropdownOnSelect = useCallback(
     (val: string) => {
-      const index = parseInt(val, 10)
-      const veNFTTokenIdsLength = veNFTTokenIds.length
-      // router.push(`/vote?tokenId=${}`)
-      if (index == veNFTTokenIdsLength) {
-        setSelectedVeNFTType(veNFTType.PENDING)
-        setDropDownDefaultValue(val)
-        // router.push(`/vote?tokenId=${useLockPendingTokenId.toString()}`)
-        setSelectedTokenID(new BigNumber(useLockPendingTokenId.toString()))
-        return
-      } else if (index == veNFTTokenIdsLength + 1) {
-        setSelectedVeNFTType(veNFTType.LOCKED)
-        setDropDownDefaultValue(val)
-        // router.push(`/vote?tokenId=${userTokenId.toString()}`)
-        setSelectedTokenID(new BigNumber(userTokenId.toString()))
-        return
-      }
-      setSelectedVeNFTType(veNFTType.USER_WALLET_NFT)
+      // const index = parseInt(val, 10)
+      console.log('drow down on select', { val })
+      // const veNFTTokenIdsLength = veNFTTokenIds.length
+
+      setSelectedVeNFTType(NFTListMap[val])
       setDropDownDefaultValue(val)
-      // router.push(`/vote?tokenId=${veNFTTokenIds[index].toString()}`)
-      setSelectedTokenID(new BigNumber(veNFTTokenIds[index].toString()))
+      setSelectedTokenID(new BigNumber(val))
+      // router.push(`/vote?tokenId=${val}`)
       return
     },
+    //   if (index == veNFTTokenIdsLength) {
+    //     setSelectedVeNFTType(veNFTType.PENDING)
+    //     setDropDownDefaultValue(val)
+    //     // router.push(`/vote?tokenId=${useLockPendingTokenId.toString()}`)
+    //     setSelectedTokenID(new BigNumber(useLockPendingTokenId.toString()))
+    //     return
+    //   } else if (index == veNFTTokenIdsLength + 1) {
+    //     setSelectedVeNFTType(veNFTType.LOCKED)
+    //     setDropDownDefaultValue(val)
+    //     // router.push(`/vote?tokenId=${userTokenId.toString()}`)
+    //     setSelectedTokenID(new BigNumber(userTokenId.toString()))
+    //     return
+    //   }
+    //   setSelectedVeNFTType(veNFTType.USER_WALLET_NFT)
+    //   setDropDownDefaultValue(val)
+    //   // router.push(`/vote?tokenId=${veNFTTokenIds[index].toString()}`)
+    //   setSelectedTokenID(new BigNumber(veNFTTokenIds[index].toString()))
+    //   return
+    // },
     [JSON.stringify(veNFTTokenIds), useLockPendingTokenId, userTokenId] // eslint-disable-line
   )
+  // console.log({ NFTList })
 
   // TODO: fix eslint warning. we should change JSON.stringify for preventing side effect
   useEffect(() => {
@@ -174,21 +183,27 @@ export default function Vote() {
     if (!account || !chainId || !tokenId || !useLockPendingTokenId || !userTokenId) return
     const veNFTs: BigNumberEther[] = [...veNFTTokenIds, useLockPendingTokenId, userTokenId]
     const paramTokenId = new BigNumber(tokenId?.toString())
-    console.log({ paramTokenId, veNFTs })
-
-    for (let index = 0; index < veNFTs.length; index++)
-      if (paramTokenId.eq(new BigNumber(veNFTs[index].toString()))) dropdownOnSelect(index.toString())
+    console.log({ paramTokenId, veNFTs, tokenId })
+    for (let index = 0; index < veNFTs.length; index++) {
+      console.log(paramTokenId.eq(new BigNumber(veNFTs[index].toString())))
+      if (paramTokenId.eq(new BigNumber(veNFTs[index].toString()))) {
+        dropdownOnSelect(veNFTs[index].toString())
+      }
+    }
   }, [account, chainId, tokenId, JSON.stringify(veNFTTokenIds), useLockPendingTokenId, userTokenId, dropdownOnSelect]) // eslint-disable-line
 
   // TODO: fix eslint warning. we should change JSON.stringify for preventing side effect
   const dropdownOptions = useMemo(() => {
-    console.log(NFTListMap)
+    // console.log({ NFTListMap })
 
     return Object.keys(NFTListMap).map((tokenId) => ({
       value: tokenId,
       label: `${NFTListMap[tokenId] != veNFTType.USER_WALLET_NFT ? NFTListMap[tokenId] : ''} #${tokenId}`,
     }))
   }, [NFTListMap])
+
+  // console.log({ dropdownOptions })
+
   return (
     <Container>
       <Hero>
