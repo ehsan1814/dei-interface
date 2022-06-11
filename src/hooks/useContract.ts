@@ -4,19 +4,18 @@ import { Contract } from '@ethersproject/contracts'
 import { AddressZero } from '@ethersproject/constants'
 import { Web3Provider } from '@ethersproject/providers'
 
-import useWeb3React from 'hooks/useWeb3'
+import useWeb3React from './useWeb3'
 
 import ERC20_ABI from 'constants/abi/ERC20.json'
 import ERC20_BYTES32_ABI from 'constants/abi/ERC20'
 import MULTICALL2_ABI from 'constants/abi/MULTICALL2.json'
-import HOLDER_MANAGER from 'constants/abi/HOLDER_MANAGER.json'
+import GENERAL_LENDER_ABI from 'constants/abi/GENERAL_LENDER.json'
+import GENERAL_LENDER_V2_ABI from 'constants/abi/GENERAL_LENDER_V2.json'
+import LENDER_MANAGER_ABI from 'constants/abi/LENDER_MANAGER.json'
 import LENDER_ORACLE_ABI from 'constants/abi/LENDER_ORACLE.json'
-import GENERAL_LENDER__ORACLE_ABI from 'constants/abi/GENERAL_LENDER__ORACLE.json'
 import SOLIDEX_LP_DEPOSITOR_ABI from 'constants/abi/SOLIDEX_LP_DEPOSITOR.json'
-import OXDAO_HOLDER_FACTORY_ABI from 'constants/abi/OXDAO_HOLDER_FACTORY.json'
 import VEDEUS_ABI from 'constants/abi/VEDEUS.json'
-import VENFT_ABI from 'constants/abi/veNFT.json'
-import VAULT_ABI from 'constants/abi/Vault.json'
+import VE_DIST_ABI from 'constants/abi/VE_DIST.json'
 import REIMBURSE_ABI from 'constants/abi/REIMBURSE.json'
 import BASE_V1_FACTORY_ABI from 'constants/abi/BASE_V1_FACTORY.json'
 import BASE_V1_PAIR_ABI from 'constants/abi/BASE_V1_PAIR.json'
@@ -24,25 +23,29 @@ import BASE_V1_VOTER_ABI from 'constants/abi/BASE_V1_VOTER.json'
 import BASE_V1_GAUGE_ABI from 'constants/abi/BASE_V1_GAUGE.json'
 import BASE_V1_BRIBE_ABI from 'constants/abi/BASE_V1_BRIBE.json'
 import BASE_V1_MINTER_ABI from 'constants/abi/BASE_V1_MINTER.json'
+import DYNAMIC_REDEEMER_ABI from 'constants/abi/DYNAMIC_REDEEMER.json'
+import DEI_BONDER_ABI from 'constants/abi/DEI_Bonder.json'
+import SWAP_ABI from 'constants/abi/SWAP_ABI.json'
+import MasterChefV2_ABI from 'constants/abi/MasterChefV2.json'
 
 import { Providers } from 'constants/providers'
 import {
+  LenderManager,
+  Multicall2,
+  SolidexLpDepositor,
+  Reimburse,
+  veDEUS,
   BaseV1Factory,
   BaseV1Voter,
-  HolderManager,
-  Multicall2,
-  Reimburse,
-  SolidexLpDepositor,
-  Vault,
-  veDEUS,
-  veNFT,
   ZERO_ADDRESS,
   BaseV1Minter,
-  OxDaoHolderFactory,
-  GeneralLenderOracle,
+  DynamicRedeemer,
+  DeiBonder,
+  veDist,
+  SwapFlashLoan,
+  MasterChefV2,
 } from 'constants/addresses'
-import { HolderABI, LenderABI } from 'constants/abi'
-import { BorrowPool } from 'state/borrow/reducer'
+import { BorrowPool, LenderVersion } from 'state/borrow/reducer'
 
 export function useContract<T extends Contract = Contract>(
   addressOrAddressMap: string | null | undefined,
@@ -66,6 +69,35 @@ export function useContract<T extends Contract = Contract>(
   }, [addressOrAddressMap, ABI, library, chainId, withSignerIfPossible, account]) as T
 }
 
+export function getProviderOrSigner(library: any, account?: string): any {
+  return account ? getSigner(library, account) : library
+}
+
+export function getSigner(library: any, account: string): any {
+  return library.getSigner(account).connectUnchecked()
+}
+
+export function getContract(
+  address: string,
+  ABI: any,
+  library: Web3Provider,
+  account?: string,
+  targetChainId?: number
+): Contract | null {
+  if (!isAddress(address) || address === AddressZero) {
+    throw new Error(`Invalid 'address' parameter '${address}'.`)
+  }
+
+  let providerOrSigner
+  if (targetChainId) {
+    providerOrSigner = getProviderOrSigner(Providers[targetChainId], account)
+  } else {
+    providerOrSigner = getProviderOrSigner(library, account)
+  }
+
+  return new Contract(address, ABI, providerOrSigner) as any
+}
+
 export function useERC20Contract(tokenAddress: string | null | undefined, withSignerIfPossible?: boolean) {
   return useContract(tokenAddress, ERC20_ABI, withSignerIfPossible)
 }
@@ -75,7 +107,8 @@ export function useBytes32TokenContract(tokenAddress?: string, withSignerIfPossi
 }
 
 export function useGeneralLenderContract(pool: BorrowPool) {
-  return useContract(pool?.generalLender, LenderABI[pool?.version])
+  const ABI = pool.version == LenderVersion.V1 ? GENERAL_LENDER_ABI : GENERAL_LENDER_V2_ABI
+  return useContract(pool.generalLender, ABI)
 }
 
 export function useBaseV1FactoryContract() {
@@ -120,26 +153,14 @@ export function useVeDeusContract() {
   return useContract(address, VEDEUS_ABI)
 }
 
-export function useVeNFTContract() {
+export function useVeDistContract() {
   const { chainId } = useWeb3React()
-  const address = useMemo(() => (chainId ? veNFT[chainId] : undefined), [chainId])
-  return useContract(address, VENFT_ABI)
-}
-
-export function useVaultContract() {
-  const { chainId } = useWeb3React()
-  const address = useMemo(() => (chainId ? Vault[chainId] : undefined), [chainId])
-  return useContract(address, VAULT_ABI)
+  const address = useMemo(() => (chainId ? veDist[chainId] : undefined), [chainId])
+  return useContract(address, VE_DIST_ABI)
 }
 
 export function useOracleContract(pool: BorrowPool) {
   return useContract(pool.oracle, LENDER_ORACLE_ABI)
-}
-
-export function useGeneralLenderOracleContract() {
-  const { chainId } = useWeb3React()
-  const address = useMemo(() => (chainId ? GeneralLenderOracle[chainId] : undefined), [chainId])
-  return useContract(address, GENERAL_LENDER__ORACLE_ABI)
 }
 
 export function useSolidexLpDepositor() {
@@ -148,20 +169,10 @@ export function useSolidexLpDepositor() {
   return useContract(address, SOLIDEX_LP_DEPOSITOR_ABI)
 }
 
-export function useOxDaoHolderFactory() {
+export function useLenderManagerContract() {
   const { chainId } = useWeb3React()
-  const address = useMemo(() => (chainId ? OxDaoHolderFactory[chainId] : undefined), [chainId])
-  return useContract(address, OXDAO_HOLDER_FACTORY_ABI)
-}
-
-export function useHolderManager() {
-  const { chainId } = useWeb3React()
-  const address = useMemo(() => (chainId ? HolderManager[chainId] : undefined), [chainId])
-  return useContract(address, HOLDER_MANAGER)
-}
-
-export function useHolderContract(pool: BorrowPool, holder: string) {
-  return useContract(holder, HolderABI[pool.type])
+  const address = useMemo(() => (chainId ? LenderManager[chainId] : undefined), [chainId])
+  return useContract(address, LENDER_MANAGER_ABI)
 }
 
 export function useMulticall2Contract() {
@@ -170,31 +181,25 @@ export function useMulticall2Contract() {
   return useContract(address, MULTICALL2_ABI)
 }
 
-export function getProviderOrSigner(library: any, account?: string): any {
-  return account ? getSigner(library, account) : library
+export function useDynamicRedeemerContract() {
+  const { chainId } = useWeb3React()
+  const address = useMemo(() => (chainId ? DynamicRedeemer[chainId] : undefined), [chainId])
+  return useContract(address, DYNAMIC_REDEEMER_ABI)
 }
 
-export function getSigner(library: any, account: string): any {
-  return library.getSigner(account).connectUnchecked()
+export function useDeiBonderContract() {
+  const { chainId } = useWeb3React()
+  const address = useMemo(() => (chainId ? DeiBonder[chainId] : undefined), [chainId])
+  return useContract(address, DEI_BONDER_ABI)
 }
 
-export function getContract(
-  address: string,
-  ABI: any,
-  library: Web3Provider,
-  account?: string,
-  targetChainId?: number
-): Contract | null {
-  if (!isAddress(address) || address === AddressZero) {
-    throw new Error(`Invalid 'address' parameter '${address}'.`)
-  }
-
-  let providerOrSigner
-  if (targetChainId) {
-    providerOrSigner = getProviderOrSigner(Providers[targetChainId], account)
-  } else {
-    providerOrSigner = getProviderOrSigner(library, account)
-  }
-
-  return new Contract(address, ABI, providerOrSigner) as any
+export function useDeiSwapContract() {
+  const { chainId } = useWeb3React()
+  const address = useMemo(() => (chainId ? SwapFlashLoan[chainId] : undefined), [chainId])
+  return useContract(address, SWAP_ABI)
+}
+export function useMasterChefV2Contract() {
+  const { chainId } = useWeb3React()
+  const address = useMemo(() => (chainId ? MasterChefV2[chainId] : undefined), [chainId])
+  return useContract(address, MasterChefV2_ABI)
 }

@@ -44,7 +44,6 @@ export function toBN(num: BigNumber.Value): BigNumber {
 export const BN_ZERO: BigNumber = toBN('0')
 export const BN_ONE: BigNumber = toBN('1')
 export const BN_TEN: BigNumber = toBN('10')
-export const BN_ONE_HUNDRED: BigNumber = toBN('100')
 
 export function removeTrailingZeros(str: string): string {
   return str.replace(/\.?0+$/, '')
@@ -92,10 +91,4 @@ export const formatBalance = (balance: BigNumber.Value, fixed = 6): string => {
     return bnBalance.toFixed(0, BigNumber.ROUND_DOWN)
   }
   return bnBalance.sd(fixed, BigNumber.ROUND_DOWN).toFixed()
-}
-
-export const fromWei = (amount: number, decimals = 18): string => {
-  if (amount === 0) return '0'
-  const displayBalance = new BigNumber(amount).dividedBy(new BigNumber(10).pow(decimals))
-  return displayBalance.toFixed(decimals, BigNumber.ROUND_DOWN)
 }

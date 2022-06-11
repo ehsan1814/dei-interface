@@ -15,6 +15,8 @@ import {
   Github as GithubIcon,
   Lock as LockIcon,
   Droplet as DropletIcon,
+  Redeem as RedeemIcon,
+  Gift as GiftIcon,
 } from 'components/Icons'
 import { Card } from 'components/Card'
 import { NavButton } from 'components/Button'
@@ -76,6 +78,14 @@ export default function Menu() {
       </NavButton>
       <div>
         <InlineModal isOpen={isOpen}>
+          <Link href="/redemption" passHref>
+            <Row active={router.route === '/redemption'}>
+              <div>Redemption</div>
+              <IconWrapper>
+                <RedeemIcon size={20} />
+              </IconWrapper>
+            </Row>
+          </Link>
           <Link href="/borrow" passHref>
             <Row active={router.route === '/borrow'}>
               <div>Borrow</div>
@@ -92,25 +102,17 @@ export default function Menu() {
               </IconWrapper>
             </Row>
           </Link>
+          <Link href="/rewards" passHref>
+            <Row active={router.route === '/rewards'}>
+              <div>Rewards</div>
+              <IconWrapper>
+                <GiftIcon size={20} />
+              </IconWrapper>
+            </Row>
+          </Link>
           <Link href="/liquidity" passHref>
             <Row active={router.route === '/liquidity'}>
               <div>Liquidity</div>
-              <IconWrapper>
-                <DropletIcon size={20} />
-              </IconWrapper>
-            </Row>
-          </Link>
-          <Link href="/vote" passHref>
-            <Row active={router.route === '/vote'}>
-              <div>Vote</div>
-              <IconWrapper>
-                <DropletIcon size={20} />
-              </IconWrapper>
-            </Row>
-          </Link>
-          <Link href="/claim" passHref>
-            <Row active={router.route === '/claim'}>
-              <div>Claim</div>
               <IconWrapper>
                 <DropletIcon size={20} />
               </IconWrapper>
